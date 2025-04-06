@@ -7,6 +7,8 @@ Ce bot Discord est conçu pour faciliter la modération et offrir diverses fonct
 - **Commandes d'information**: ping, serverinfo, userinfo, avatar
 - **Outils de communauté**: sondages, suggestions, rappels, giveaways
 - **Système de modération**: Gestion des avertissements avec un seuil configurable
+- **Suivi des invitations**: Statistiques et gestion des invitations
+- **Outils d'administration**: Gestion des extensions, sauvegardes, configurations
 - **Interface hybride**: Compatible avec les commandes slash et les commandes textuelles
 
 ## Prérequis
@@ -69,32 +71,59 @@ python main.py
 
 ## Commandes disponibles
 
-### Utilitaires
-- `!ping` - Vérifier la latence du bot
-- `!serverinfo` - Afficher les informations du serveur
-- `!userinfo [membre]` - Afficher les informations d'un utilisateur
-- `!poll <question> [choix1|choix2|...]` - Créer un sondage
-- `!avatar [membre]` - Afficher l'avatar d'un utilisateur
-- `!reminder <minutes> <message>` - Définir un rappel
-- `!help [commande]` - Afficher l'aide des commandes
+### Commandes d'administration
+* `!reload <extension>` - Recharge une extension.
+* `!load <extension>` - Charge une extension.
+* `!unload <extension>` - Décharge une extension.
+* `!extensions` - Liste toutes les extensions.
+* `!sync` - Synchronise les commandes slash.
+* `!status <type> <texte>` - Change le statut du bot.
+* `!announce <canal> <titre> <message>` - Envoie une annonce dans un canal.
+* `!purge_user <utilisateur> <jours> [raison]` - Supprime tous les messages d'un utilisateur.
+* `!lockdown [canal] [raison]` - Verrouille ou déverrouille un canal.
+* `!slowmode <secondes> [canal] [raison]` - Définit le mode lent d'un canal.
+* `!backup` - Crée une sauvegarde de la base de données.
+* `!set_config <clé> <valeur>` - Définit une valeur de configuration pour le serveur.
+* `!get_config [clé]` - Récupère une ou toutes les valeurs de configuration.
 
-### Suggestions
-- `!setup_suggestions <canal> [enable_voting]` - Configurer un canal de suggestions
-- `!suggest <suggestion>` - Faire une suggestion
+### Commandes de modération
+* `!warn <membre> <raison>` - Avertir un membre.
+* `!kick <membre> <raison>` - Expulser un membre du serveur.
 
-### Giveaways
-- `!giveaway <durée_minutes> <nb_gagnants> <prix>` - Créer un tirage au sort
+### Commandes d'invitations
+* `!invites [membre]` - Affiche les statistiques d'invitation d'un utilisateur.
+* `!add_invites <membre> <nombre> [raison]` - Ajoute des invitations bonus à un utilisateur.
+* `!remove_invites <membre> <nombre> [raison]` - Retire des invitations à un utilisateur.
+* `!invitestop [nombre]` - Affiche le classement des membres ayant le plus d'invitations.
+* `!inviter <membre>` - Affiche qui a invité un membre.
+
+### Commandes utilitaires
+* `!ping` - Vérifie la latence du bot.
+* `!serverinfo` - Affiche les informations du serveur.
+* `!userinfo [membre]` - Affiche les informations d'un utilisateur.
+* `!poll <question> [choix1|choix2|...]` - Crée un sondage.
+* `!avatar [membre]` - Affiche l'avatar d'un utilisateur.
+* `!reminder <minutes> <message>` - Définit un rappel.
+* `!help [commande]` - Affiche l'aide des commandes.
+
+### Commandes de suggestions
+* `!setup_suggestions <canal> [enable_voting]` - Configure un canal de suggestions.
+* `!suggest <suggestion>` - Fait une suggestion.
+
+### Commandes de giveaways
+* `!giveaway <durée_minutes> <nb_gagnants> <prix>` - Crée un tirage au sort.
 
 ## Mentions légales
 
 ### Licence
-Ce projet est distribué sous la licence []. Veuillez consulter le fichier LICENSE pour plus de détails.
+Ce projet est distribué sous la licence [ ]. Veuillez consulter le fichier LICENSE pour plus de détails.
 
 ### Confidentialité
 Ce bot collecte et stocke certaines données nécessaires à son fonctionnement:
 - IDs des messages et des utilisateurs pour la modération et les fonctionnalités
 - Paramètres spécifiques aux serveurs pour la personnalisation
 - Logs d'activité pour le débogage
+- Statistiques d'invitations et activités des membres
 
 Ces données sont stockées localement et ne sont pas partagées avec des tiers.
 
