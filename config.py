@@ -25,3 +25,9 @@ DATABASE_PATH = os.getenv('DATABASE_PATH', 'data/database.db')
 # Cooldowns et limites
 WARN_THRESHOLD = int(os.getenv('WARN_THRESHOLD', 3))
 MUTE_DURATION = int(os.getenv('DEFAULT_MUTE_DURATION', 3600))  # en secondes (1 heure)
+
+# Vérification de version
+VERSION = "1.0.0"  # Version actuelle du bot
+ADMIN_SERVER_ID = int(os.getenv('ADMIN_SERVER_ID'))  # ID du serveur d'administration
+VERSION_CHANNEL_ID = int(os.getenv('VERSION_CHANNEL_ID'))  # ID du canal contenant la version
+
