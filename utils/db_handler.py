@@ -242,6 +242,14 @@ class DatabaseHandler:
             "last_message_time": None
         }
     
+    def get_connection(self):
+        """Renvoie la connexion à la base de données pour des opérations personnalisées"""
+        return self.conn
+
+    def get_cursor(self):
+        """Renvoie le curseur pour des opérations personnalisées"""
+        return self.curso
+
     def get_leaderboard(self, server_id: int, limit: int = 10) -> List[Dict[str, Any]]:
         """Récupère le classement des niveaux"""
         self.cursor.execute('''
@@ -282,6 +290,15 @@ class DatabaseHandler:
         self.conn.commit()
         return self.cursor.rowcount > 0
     
+    def get_connection(self):
+        """Renvoie la connexion à la base de données pour des opérations personnalisées"""
+        return self.conn
+
+    def get_cursor(self):
+        """Renvoie le curseur pour des opérations personnalisées"""
+        return self.cursor
+
+
     def close(self):
         """Ferme la connexion à la base de données"""
         self.conn.close()
