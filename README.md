@@ -88,7 +88,7 @@ python main.py
 ## Mentions légales
 
 ### Licence
-Ce projet est distribué sous la licence [INSÉRER VOTRE LICENCE ICI]. Veuillez consulter le fichier LICENSE pour plus de détails.
+Ce projet est distribué sous la licence []. Veuillez consulter le fichier LICENSE pour plus de détails.
 
 ### Confidentialité
 Ce bot collecte et stocke certaines données nécessaires à son fonctionnement:
