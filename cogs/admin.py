@@ -140,6 +140,7 @@ class Admin(commands.Cog):
         except Exception as e:
             await ctx.send(f"❌ Erreur lors de l'envoi de l'annonce:\n```{e}```")
 
+    # cogs/admin.py (suite)
     @commands.hybrid_command(name="purge_user", description="Supprime tous les messages d'un utilisateur dans tous les canaux")
     @app_commands.describe(
         user="L'utilisateur dont les messages doivent être supprimés",
@@ -184,4 +185,224 @@ class Admin(commands.Cog):
                             # Pause pour éviter le rate limiting
                             await asyncio.sleep(0.5)
                     
-                    if deleted_
+                    if deleted_in_channel > 0:
+                        await status_msg.edit(content=f"⏳ Suppression en cours... {total_deleted} messages supprimés jusqu'à présent. Canal actuel: {channel.mention} ({deleted_in_channel} messages)")
+                
+                except discord.Forbidden:
+                    await ctx.send(f"⚠️ Je n'ai pas les permissions nécessaires pour supprimer des messages dans {channel.mention}.")
+                except Exception as e:
+                    await ctx.send(f"❌ Erreur lors de la suppression des messages dans {channel.mention}:\n```{e}```")
+            
+            # Message final
+            await status_msg.edit(content=f"✅ Terminé! {total_deleted} messages de {user.mention} ont été supprimés.")
+            
+            # Enregistrer l'action de modération
+            try:
+                from utils.db_handler import DatabaseHandler
+                db = DatabaseHandler()
+                db.add_mod_action("purge", user.id, ctx.guild.id, ctx.author.id, reason)
+                db.close()
+            except Exception as e:
+                print(f"Erreur lors de l'enregistrement de l'action de purge: {e}")
+            
+        except asyncio.TimeoutError:
+            await confirm_msg.edit(content="Action annulée (délai expiré).")
+        except Exception as e:
+            await ctx.send(f"❌ Erreur lors de la purge des messages:\n```{e}```")
+
+    @commands.hybrid_command(name="lockdown", description="Verrouille ou déverrouille un canal")
+    @app_commands.describe(
+        channel="Le canal à verrouiller (par défaut: canal actuel)",
+        reason="Raison du verrouillage"
+    )
+    @commands.has_permissions(manage_channels=True)
+    async def lockdown(self, ctx, channel: Optional[discord.TextChannel] = None, *, reason: str = "Pas de raison spécifiée"):
+        channel = channel or ctx.channel
+        
+        # Récupérer le rôle @everyone
+        everyone_role = ctx.guild.default_role
+        
+        # Vérifier l'état actuel des permissions
+        current_perms = channel.permissions_for(everyone_role)
+        is_locked = not current_perms.send_messages
+        
+        if is_locked:
+            # Déverrouiller le canal
+            await channel.set_permissions(everyone_role, send_messages=True)
+            await ctx.send(f"🔓 Le canal {channel.mention} a été déverrouillé.")
+            
+            # Créer l'embed d'annonce
+            embed = discord.Embed(
+                title="Canal déverrouillé",
+                description=f"Ce canal est maintenant ouvert à tous les utilisateurs.",
+                color=discord.Color.green(),
+                timestamp=datetime.datetime.now()
+            )
+            embed.add_field(name="Modérateur", value=ctx.author.mention, inline=True)
+            embed.add_field(name="Raison", value=reason, inline=True)
+            
+            await channel.send(embed=embed)
+        else:
+            # Verrouiller le canal
+            await channel.set_permissions(everyone_role, send_messages=False)
+            await ctx.send(f"🔒 Le canal {channel.mention} a été verrouillé.")
+            
+            # Créer l'embed d'annonce
+            embed = discord.Embed(
+                title="Canal verrouillé",
+                description=f"Ce canal a été temporairement verrouillé.",
+                color=discord.Color.red(),
+                timestamp=datetime.datetime.now()
+            )
+            embed.add_field(name="Modérateur", value=ctx.author.mention, inline=True)
+            embed.add_field(name="Raison", value=reason, inline=True)
+            
+            await channel.send(embed=embed)
+
+    @commands.hybrid_command(name="slowmode", description="Définit le mode lent d'un canal")
+    @app_commands.describe(
+        seconds="Durée en secondes (0 pour désactiver, max 21600)",
+        channel="Le canal (par défaut: canal actuel)",
+        reason="Raison du changement"
+    )
+    @commands.has_permissions(manage_channels=True)
+    async def slowmode(self, ctx, seconds: int, channel: Optional[discord.TextChannel] = None, *, reason: str = "Pas de raison spécifiée"):
+        channel = channel or ctx.channel
+        
+        if seconds < 0 or seconds > 21600:
+            return await ctx.send("La durée doit être entre 0 et 21600 secondes (6 heures).")
+        
+        await channel.edit(slowmode_delay=seconds)
+        
+        if seconds == 0:
+            await ctx.send(f"✅ Mode lent désactivé dans {channel.mention}.")
+            
+            # Créer l'embed d'annonce
+            embed = discord.Embed(
+                title="Mode lent désactivé",
+                description=f"Le mode lent a été désactivé dans ce canal.",
+                color=discord.Color.green(),
+                timestamp=datetime.datetime.now()
+            )
+            embed.add_field(name="Modérateur", value=ctx.author.mention, inline=True)
+            embed.add_field(name="Raison", value=reason, inline=True)
+            
+            await channel.send(embed=embed)
+        else:
+            # Formatage du temps
+            if seconds < 60:
+                time_str = f"{seconds} seconde(s)"
+            elif seconds < 3600:
+                minutes = seconds // 60
+                time_str = f"{minutes} minute(s)"
+            else:
+                hours = seconds // 3600
+                minutes = (seconds % 3600) // 60
+                time_str = f"{hours} heure(s)"
+                if minutes > 0:
+                    time_str += f" et {minutes} minute(s)"
+            
+            await ctx.send(f"✅ Mode lent défini à {time_str} dans {channel.mention}.")
+            
+            # Créer l'embed d'annonce
+            embed = discord.Embed(
+                title="Mode lent activé",
+                description=f"Le mode lent a été activé dans ce canal.",
+                color=discord.Color.orange(),
+                timestamp=datetime.datetime.now()
+            )
+            embed.add_field(name="Durée", value=time_str, inline=True)
+            embed.add_field(name="Modérateur", value=ctx.author.mention, inline=True)
+            embed.add_field(name="Raison", value=reason, inline=True)
+            
+            await channel.send(embed=embed)
+
+    @commands.hybrid_command(name="backup", description="Crée une sauvegarde de la base de données")
+    @commands.has_permissions(administrator=True)
+    async def backup(self, ctx):
+        try:
+            # Créer un dossier backups s'il n'existe pas
+            if not os.path.exists('backups'):
+                os.makedirs('backups')
+            
+            # Générer un nom de fichier avec la date
+            date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            backup_path = f"backups/database_backup_{date_str}.db"
+            
+            # Copier la base de données
+            import shutil
+            shutil.copy2('data/database.db', backup_path)
+            
+            await ctx.send(f"✅ Sauvegarde créée avec succès: `{backup_path}`")
+            
+        except Exception as e:
+            await ctx.send(f"❌ Erreur lors de la création de la sauvegarde:\n```{e}```")
+
+    @commands.hybrid_command(name="set_config", description="Définit une valeur de configuration pour le serveur")
+    @app_commands.describe(
+        key="La clé de configuration",
+        value="La valeur à définir"
+    )
+    @commands.has_permissions(administrator=True)
+    async def set_config(self, ctx, key: str, *, value: str):
+        try:
+            from utils.db_handler import DatabaseHandler
+            db = DatabaseHandler()
+            
+            # Récupérer la configuration actuelle
+            config = db.get_server_config(ctx.guild.id)
+            
+            # Mettre à jour la valeur
+            config[key] = value
+            
+            # Sauvegarder la configuration
+            db.update_server_config(ctx.guild.id, config)
+            db.close()
+            
+            await ctx.send(f"✅ Configuration mise à jour: `{key}` = `{value}`")
+            
+        except Exception as e:
+            await ctx.send(f"❌ Erreur lors de la mise à jour de la configuration:\n```{e}```")
+
+    @commands.hybrid_command(name="get_config", description="Récupère une valeur de configuration pour le serveur")
+    @app_commands.describe(
+        key="La clé de configuration (facultatif, toutes les valeurs si non spécifié)"
+    )
+    @commands.has_permissions(administrator=True)
+    async def get_config(self, ctx, key: Optional[str] = None):
+        try:
+            from utils.db_handler import DatabaseHandler
+            db = DatabaseHandler()
+            
+            # Récupérer la configuration
+            config = db.get_server_config(ctx.guild.id)
+            db.close()
+            
+            if key:
+                # Récupérer une valeur spécifique
+                if key in config:
+                    await ctx.send(f"📝 Configuration: `{key}` = `{config[key]}`")
+                else:
+                    await ctx.send(f"❌ La clé `{key}` n'existe pas dans la configuration.")
+            else:
+                # Récupérer toutes les valeurs
+                if not config:
+                    return await ctx.send("❌ Aucune configuration n'a été définie pour ce serveur.")
+                
+                # Créer un embed avec toutes les valeurs
+                embed = discord.Embed(
+                    title=f"Configuration de {ctx.guild.name}",
+                    color=discord.Color.blue(),
+                    timestamp=datetime.datetime.now()
+                )
+                
+                for k, v in config.items():
+                    embed.add_field(name=k, value=v, inline=False)
+                
+                await ctx.send(embed=embed)
+            
+        except Exception as e:
+            await ctx.send(f"❌ Erreur lors de la récupération de la configuration:\n```{e}```")
+
+async def setup(bot):
+    await bot.add_cog(Admin(bot))
