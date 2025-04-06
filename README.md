@@ -105,4 +105,4 @@ Ce bot est fourni "tel quel", sans garantie d'aucune sorte. Les développeurs ne
 Les contributions sont les bienvenues! N'hésitez pas à soumettre des pull requests ou à signaler des problèmes.
 
 ## Contact
-Pour toute question ou assistance, veuillez contacter [VOTRE_CONTACT].
+Pour toute question ou assistance, veuillez contacter [crewbotgit@gmail.com].
